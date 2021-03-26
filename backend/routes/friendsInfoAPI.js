@@ -1,0 +1,31 @@
+const router = require('express').Router()
+const axios = require('axios')
+const express = require('express')
+
+router.use(express.json())
+
+//get weather
+//this weather API gives you a timzone! 
+//gives offset in seconds ("timezone" in response body). e.g. for New York (-5hr) it's -18000 seconds
+const weatherEndpoint = 'http://api.openweathermap.org/data/2.5/weather'
+const weatherAPIKey = process.env.WEATHER_APIKEY
+router.post('/weather', async (req, res, next) => {
+    try {
+        const endpoint = `${weatherEndpoint}?q=${req.body.location}&appid=${weatherAPIKey}`
+        const {data} = await axios.get(endpoint)
+        const usefulData = {
+            weatherId: data.weather[0].id,
+            mainWeather: data.weather[0].main,
+            weatherDesc: data.weather[0].description,
+            kelvinTemp: data.main.temp,
+            secondsTimezoneOffset: data.timezone
+        }
+        res.json(usefulData)
+        // res.send(data)
+    } catch (error) {
+        res.status(500).json({message: error.message || error})
+    }
+    next()
+})
+
+module.exports = router
